@@ -99,6 +99,10 @@ export class JourneyRenderer {
     return this.distance;
   }
 
+  private isRichScene() {
+    return this.getState().visualDepth === "rich";
+  }
+
   private render(time: number) {
     const state = this.getState();
     const delta = Math.min(0.04, (time - this.lastTime) / 1000 || 0);
@@ -116,6 +120,7 @@ export class JourneyRenderer {
     this.drawSky(palette, weather, state.seed, elapsed);
     this.drawCelestial(palette, weather, state.seed, elapsed);
     this.drawClouds(palette, weather, state.seed, elapsed);
+    this.drawAtmosphericDepth(biome, palette, weather, state.seed);
     this.drawTerrainLayer("far", biome, palette, weather, state.seed, elapsed, 0.1);
     this.drawTerrainLayer("mid", biome, palette, weather, state.seed, elapsed, 0.32);
     this.drawWorldFeatures(biome, palette, weather, state.seed, elapsed);
@@ -224,6 +229,42 @@ export class JourneyRenderer {
     this.ctx.restore();
   }
 
+  private drawAtmosphericDepth(biome: Biome, palette: TimePalette, weather: WeatherProfile, seed: string) {
+    if (!this.isRichScene()) {
+      return;
+    }
+    const { width, height } = this.size;
+    const color = biomeColors[biome];
+    this.ctx.save();
+    for (let band = 0; band < 3; band += 1) {
+      const yBase = height * (0.42 + band * 0.065);
+      const amp = height * (0.055 + band * 0.022);
+      const density = 26 + band * 8;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, height);
+      for (let i = 0; i <= density; i += 1) {
+        const x = (i / density) * width;
+        const worldX = (x + this.distance * (0.035 + band * 0.026)) / width;
+        const ridge = yBase - fbm(`${seed}:atmo:${biome}:${band}`, worldX * (2.4 + band), 4) * amp;
+        this.ctx.lineTo(x, ridge);
+      }
+      this.ctx.lineTo(width, height);
+      this.ctx.closePath();
+      this.ctx.globalAlpha = (0.18 - band * 0.035) * weather.visibility;
+      this.ctx.fillStyle = blendHex(color.far, palette.skyMid, 0.42 + band * 0.12);
+      this.ctx.fill();
+    }
+
+    const haze = this.ctx.createLinearGradient(0, height * 0.32, 0, height * 0.74);
+    haze.addColorStop(0, "rgba(255,255,255,0)");
+    haze.addColorStop(0.58, hexToRgba(palette.light, 0.08 + weather.cloudCover * 0.04));
+    haze.addColorStop(1, "rgba(255,255,255,0)");
+    this.ctx.globalAlpha = 1;
+    this.ctx.fillStyle = haze;
+    this.ctx.fillRect(0, height * 0.25, width, height * 0.55);
+    this.ctx.restore();
+  }
+
   private drawTerrainLayer(
     layer: LayerName,
     biome: Biome,
@@ -237,7 +278,8 @@ export class JourneyRenderer {
     const color = biomeColors[biome];
     const baseY = layer === "far" ? height * 0.56 : layer === "mid" ? height * 0.68 : height * 0.83;
     const amplitude = layer === "far" ? height * 0.16 : layer === "mid" ? height * 0.11 : height * 0.06;
-    const density = layer === "far" ? 11 : layer === "mid" ? 16 : 23;
+    const rich = this.isRichScene();
+    const density = layer === "far" ? (rich ? 26 : 11) : layer === "mid" ? (rich ? 36 : 16) : rich ? 54 : 23;
     const speed = this.distance * parallax;
     const layerColor = blendHex(color[layer], palette.groundTint, layer === "far" ? 0.36 : 0.16);
     const visibilityAlpha = layer === "far" ? weather.visibility : lerp(1, weather.visibility, 0.38);
@@ -249,14 +291,15 @@ export class JourneyRenderer {
     for (let i = 0; i <= density; i += 1) {
       const x = (i / density) * width;
       const worldX = (x + speed) / width;
-      let terrain = fbm(`${seed}:${biome}:${layer}`, worldX * 3.2, 5);
+      let terrain = fbm(`${seed}:${biome}:${layer}`, worldX * (rich ? 3.9 : 3.2), rich ? 6 : 5);
       if (biome === "mountains" && layer === "far") {
         terrain = Math.pow(terrain, 1.8) * 1.35;
       }
       if (biome === "desert") {
         terrain = smoothstep(0.05, 0.95, terrain) * 0.72;
       }
-      const ridge = baseY - terrain * amplitude - Math.sin(worldX * 4 + elapsed * 0.04) * amplitude * 0.08;
+      const fine = rich ? fbm(`${seed}:${biome}:fine:${layer}`, worldX * 12.5, 3) * amplitude * 0.08 : 0;
+      const ridge = baseY - terrain * amplitude - fine - Math.sin(worldX * 4 + elapsed * 0.04) * amplitude * 0.08;
       this.ctx.lineTo(x, ridge);
     }
     this.ctx.lineTo(width, height);
@@ -266,6 +309,10 @@ export class JourneyRenderer {
     gradient.addColorStop(1, blendHex(color.near, palette.shadow, layer === "near" ? 0.42 : 0.22));
     this.ctx.fillStyle = gradient;
     this.ctx.fill();
+
+    if (rich) {
+      this.drawTerrainTexture(layer, biome, palette, seed, parallax, baseY);
+    }
 
     if (color.snow > 0.2 || biome === "mountains") {
       this.drawSnowCaps(seed, layer, baseY, amplitude, parallax, color.snow || 0.24);
@@ -280,6 +327,29 @@ export class JourneyRenderer {
     }
     if (layer === "near") {
       this.drawNearDetails(biome, palette, weather, seed, parallax, elapsed);
+    }
+    this.ctx.restore();
+  }
+
+  private drawTerrainTexture(layer: LayerName, biome: Biome, palette: TimePalette, seed: string, parallax: number, baseY: number) {
+    const { width, height } = this.size;
+    const color = biomeColors[biome];
+    const count = layer === "far" ? 22 : layer === "mid" ? 48 : 96;
+    const alpha = layer === "far" ? 0.08 : layer === "mid" ? 0.14 : 0.18;
+    this.ctx.save();
+    this.ctx.globalAlpha *= alpha;
+    this.ctx.strokeStyle = blendHex(color.accent, palette.shadow, layer === "near" ? 0.18 : 0.05);
+    this.ctx.lineWidth = layer === "near" ? 1.4 : 1;
+    for (let i = 0; i < count; i += 1) {
+      const lane = seededUnit(seed, `texture-lane:${layer}:${i}`);
+      const y = lerp(baseY + 8, height * 0.98, lane);
+      const x = ((seededRange(seed, `texture-x:${layer}:${i}`, 0, width * 1.5) - this.distance * parallax * (1.4 + lane)) % (width + 80)) - 40;
+      const len = seededRange(seed, `texture-l:${layer}:${i}`, layer === "near" ? 18 : 10, layer === "near" ? 74 : 42);
+      const tilt = seededRange(seed, `texture-t:${layer}:${i}`, -5, 5);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, y);
+      this.ctx.quadraticCurveTo(x + len * 0.45, y - 2 + tilt, x + len, y + tilt * 0.4);
+      this.ctx.stroke();
     }
     this.ctx.restore();
   }
@@ -332,8 +402,9 @@ export class JourneyRenderer {
 
   private drawWorldFeatures(biome: Biome, palette: TimePalette, weather: WeatherProfile, seed: string, elapsed: number) {
     const { width, height } = this.size;
+    const rich = this.isRichScene();
     if (["village", "urban", "station"].includes(biome)) {
-      const count = biome === "urban" ? 28 : 16;
+      const count = biome === "urban" ? (rich ? 46 : 28) : rich ? 28 : 16;
       for (let i = 0; i < count; i += 1) {
         const anchor = seededRange(seed, `building:${i}`, -100, width + 220);
         const x = (anchor - (this.distance * 0.24 + i * 137) % (width + 280)) % (width + 280);
@@ -347,6 +418,18 @@ export class JourneyRenderer {
     if (biome === "coast") {
       this.drawBirdFlock(width * 0.66, height * 0.28, 7, palette, elapsed);
     }
+
+    if (rich && ["fields", "farmland", "plains", "village"].includes(biome)) {
+      for (let i = 0; i < 8; i += 1) {
+        const x = ((seededRange(seed, `hut:${i}`, 0, width * 1.6) - this.distance * 0.18) % (width + 180)) - 90;
+        const y = height * seededRange(seed, `hut-y:${i}`, 0.55, 0.68);
+        this.drawDistantHut(x, y, seededRange(seed, `hut-s:${i}`, 0.55, 1.05), palette, weather, i);
+      }
+    }
+
+    if (rich && ["urban", "village", "station", "farmland"].includes(biome)) {
+      this.drawDistantWires(palette, weather, seed, elapsed);
+    }
   }
 
   private drawMidgroundDetails(
@@ -358,7 +441,8 @@ export class JourneyRenderer {
     elapsed: number
   ) {
     const { width, height } = this.size;
-    const count = biome === "forest" ? 72 : biome === "desert" ? 18 : biome === "snow" ? 26 : 42;
+    const rich = this.isRichScene();
+    const count = biome === "forest" ? (rich ? 124 : 72) : biome === "desert" ? (rich ? 34 : 18) : biome === "snow" ? (rich ? 54 : 26) : rich ? 78 : 42;
     for (let i = 0; i < count; i += 1) {
       const world = seededRange(seed, `mid-tree:${i}`, 0, width * 2);
       const x = ((world - this.distance * parallax * seededRange(seed, `mid-speed:${i}`, 0.55, 1.05)) % (width + 120)) - 60;
@@ -371,7 +455,11 @@ export class JourneyRenderer {
       } else if (biome === "snow") {
         this.drawPine(x, y, scale * 0.75, palette, weather, true);
       } else if (biome !== "river" && biome !== "bridge" && biome !== "station") {
-        this.drawPine(x, y, scale, palette, weather, false);
+        if (rich && i % 4 === 0) {
+          this.drawBroadleaf(x, y, scale, palette, weather);
+        } else {
+          this.drawPine(x, y, scale, palette, weather, false);
+        }
       }
     }
 
@@ -389,6 +477,7 @@ export class JourneyRenderer {
     elapsed: number
   ) {
     const { width, height } = this.size;
+    const rich = this.isRichScene();
     const trackY = height * 0.88;
     this.ctx.strokeStyle = "rgba(27, 30, 31, 0.34)";
     this.ctx.lineWidth = 2;
@@ -399,8 +488,8 @@ export class JourneyRenderer {
       this.ctx.stroke();
     }
 
-    for (let i = 0; i < 12; i += 1) {
-      const spacing = width / 7;
+    for (let i = 0; i < (rich ? 20 : 12); i += 1) {
+      const spacing = width / (rich ? 10 : 7);
       const x = ((i * spacing - (this.distance * parallax * 1.45) % spacing) + width) % (width + spacing) - spacing;
       this.ctx.save();
       this.ctx.translate(x, trackY + 12);
@@ -414,7 +503,11 @@ export class JourneyRenderer {
       this.drawPlatform(palette, weather, seed, elapsed);
     }
 
-    for (let i = 0; i < 32; i += 1) {
+    if (rich) {
+      this.drawForegroundPoles(palette, seed, elapsed);
+    }
+
+    for (let i = 0; i < (rich ? 68 : 32); i += 1) {
       const x = ((seededRange(seed, `grass:${i}`, 0, width * 1.5) - this.distance * parallax * 1.8) % (width + 60)) - 30;
       const y = height * seededRange(seed, `grass-y:${i}`, 0.76, 0.96);
       const h = seededRange(seed, `grass-h:${i}`, biome === "desert" ? 8 : 14, biome === "forest" ? 58 : 34);
@@ -425,6 +518,81 @@ export class JourneyRenderer {
       this.ctx.quadraticCurveTo(x + Math.sin(elapsed + i) * 8, y - h * 0.55, x + 4, y - h);
       this.ctx.stroke();
     }
+  }
+
+  private drawDistantHut(
+    x: number,
+    y: number,
+    scale: number,
+    palette: TimePalette,
+    weather: WeatherProfile,
+    index: number
+  ) {
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.46 * weather.visibility;
+    const wall = blendHex(index % 2 ? "#9b7650" : "#735c4a", palette.groundTint, 0.22);
+    const roof = blendHex("#51392e", palette.shadow, 0.2);
+    const w = 34 * scale;
+    const h = 20 * scale;
+    this.ctx.fillStyle = wall;
+    this.ctx.fillRect(x - w / 2, y - h, w, h);
+    this.ctx.fillStyle = roof;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x - w * 0.62, y - h);
+    this.ctx.lineTo(x, y - h - 18 * scale);
+    this.ctx.lineTo(x + w * 0.62, y - h);
+    this.ctx.closePath();
+    this.ctx.fill();
+    this.ctx.fillStyle = hexToRgba(palette.accent, palette.lampAlpha * 0.55);
+    this.ctx.fillRect(x + w * 0.14, y - h + 7 * scale, 5 * scale, 6 * scale);
+    this.ctx.restore();
+  }
+
+  private drawDistantWires(palette: TimePalette, weather: WeatherProfile, seed: string, elapsed: number) {
+    const { width, height } = this.size;
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.26 * weather.visibility;
+    this.ctx.strokeStyle = blendHex("#26343b", palette.shadow, 0.24);
+    this.ctx.lineWidth = 1;
+    const y = height * 0.5;
+    for (let row = 0; row < 2; row += 1) {
+      this.ctx.beginPath();
+      for (let i = 0; i <= 16; i += 1) {
+        const x = (i / 16) * width;
+        const sag = Math.sin(i * 0.9 + elapsed * 0.04 + row) * 4 + seededRange(seed, `wire:${row}:${i}`, -3, 3);
+        if (i === 0) {
+          this.ctx.moveTo(x, y + row * 13 + sag);
+        } else {
+          this.ctx.lineTo(x, y + row * 13 + sag);
+        }
+      }
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+  }
+
+  private drawForegroundPoles(palette: TimePalette, seed: string, elapsed: number) {
+    const { width, height } = this.size;
+    const trackY = height * 0.83;
+    this.ctx.save();
+    for (let i = 0; i < 8; i += 1) {
+      const spacing = width / 3.5;
+      const x = ((seededRange(seed, `near-pole:${i}`, 0, width) - this.distance * 1.16) % (width + spacing)) - spacing * 0.4;
+      const poleH = seededRange(seed, `near-pole-h:${i}`, 84, 150);
+      this.ctx.globalAlpha = 0.24;
+      this.ctx.strokeStyle = blendHex("#2d3335", palette.shadow, 0.3);
+      this.ctx.lineWidth = 4;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, trackY);
+      this.ctx.lineTo(x + Math.sin(elapsed + i) * 2, trackY - poleH);
+      this.ctx.stroke();
+      this.ctx.lineWidth = 2;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x - 26, trackY - poleH + 18);
+      this.ctx.lineTo(x + 28, trackY - poleH + 13);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
   }
 
   private drawRareEvents(palette: TimePalette, weather: WeatherProfile, seed: string, elapsed: number) {
@@ -515,7 +683,9 @@ export class JourneyRenderer {
         this.ctx.stroke();
       }
       this.ctx.restore();
-      this.drawRainDroplets(seed, elapsed, weatherId === "stormy" ? 1 : 0.72);
+      if (this.getState().glassEffects) {
+        this.drawRainDroplets(seed, elapsed, weatherId === "stormy" ? 1 : 0.72);
+      }
     }
 
     if (weatherId === "snowy") {
@@ -559,6 +729,9 @@ export class JourneyRenderer {
   }
 
   private drawGlass(palette: TimePalette, weather: WeatherProfile, seed: string, elapsed: number) {
+    if (!this.getState().glassEffects) {
+      return;
+    }
     const { width, height } = this.size;
     const reflected = this.ctx.createLinearGradient(0, 0, width, height);
     reflected.addColorStop(0, "rgba(255,255,255,0.09)");
@@ -570,10 +743,10 @@ export class JourneyRenderer {
     this.ctx.fillRect(0, 0, width, height);
 
     this.ctx.save();
-    this.ctx.globalAlpha = 0.09 + weather.cloudCover * 0.04;
+    this.ctx.globalAlpha = (0.09 + weather.cloudCover * 0.04) * (this.isRichScene() ? 1.5 : 1);
     this.ctx.strokeStyle = hexToRgba(palette.light, 0.38);
     this.ctx.lineWidth = 1;
-    for (let i = 0; i < 6; i += 1) {
+    for (let i = 0; i < (this.isRichScene() ? 13 : 6); i += 1) {
       const x = seededRange(seed, `glass-line:${i}`, 0, width) + Math.sin(elapsed * 0.08 + i) * 4;
       this.ctx.beginPath();
       this.ctx.moveTo(x, 0);
@@ -610,18 +783,40 @@ export class JourneyRenderer {
   private drawPine(x: number, y: number, scale: number, palette: TimePalette, weather: WeatherProfile, snowy: boolean) {
     const trunk = blendHex("#4b3224", palette.shadow, 0.18);
     const foliage = snowy ? "#e2eef0" : blendHex("#234a34", palette.groundTint, 0.22);
+    this.ctx.save();
+    this.ctx.shadowColor = hexToRgba(palette.shadow, 0.12);
+    this.ctx.shadowBlur = 4 * scale;
     this.ctx.fillStyle = trunk;
     this.ctx.fillRect(x - 2 * scale, y - 18 * scale, 4 * scale, 18 * scale);
     this.ctx.fillStyle = hexToRgba(foliage, weather.visibility);
-    for (let i = 0; i < 3; i += 1) {
+    for (let i = 0; i < (this.isRichScene() ? 5 : 3); i += 1) {
       const top = y - (42 - i * 13) * scale;
       this.ctx.beginPath();
-      this.ctx.moveTo(x, top);
-      this.ctx.lineTo(x - (18 - i * 3) * scale, y - (14 - i * 3) * scale);
-      this.ctx.lineTo(x + (18 - i * 3) * scale, y - (14 - i * 3) * scale);
+      this.ctx.moveTo(x + Math.sin(i) * scale, top + i * 2 * scale);
+      this.ctx.lineTo(x - (20 - i * 2.6) * scale, y - (12 - i * 2.2) * scale);
+      this.ctx.lineTo(x + (20 - i * 2.6) * scale, y - (12 - i * 2.2) * scale);
       this.ctx.closePath();
       this.ctx.fill();
     }
+    this.ctx.restore();
+  }
+
+  private drawBroadleaf(x: number, y: number, scale: number, palette: TimePalette, weather: WeatherProfile) {
+    this.ctx.save();
+    const trunk = blendHex("#5f402b", palette.shadow, 0.18);
+    const leaf = blendHex("#315d3f", palette.groundTint, 0.18);
+    this.ctx.globalAlpha = weather.visibility;
+    this.ctx.fillStyle = trunk;
+    this.ctx.fillRect(x - 2 * scale, y - 20 * scale, 4 * scale, 20 * scale);
+    this.ctx.fillStyle = hexToRgba(leaf, 0.78);
+    for (let i = 0; i < 5; i += 1) {
+      const ox = (i - 2) * 7 * scale;
+      const oy = Math.sin(i * 1.7) * 4 * scale;
+      this.ctx.beginPath();
+      this.ctx.ellipse(x + ox, y - 34 * scale + oy, 13 * scale, 17 * scale, i * 0.25, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
+    this.ctx.restore();
   }
 
   private drawFieldLine(x: number, y: number, scale: number, palette: TimePalette, index: number) {
@@ -662,6 +857,13 @@ export class JourneyRenderer {
   private drawBuilding(x: number, y: number, w: number, h: number, palette: TimePalette, weather: WeatherProfile, index: number) {
     this.ctx.fillStyle = hexToRgba(blendHex(index % 3 ? "#685748" : "#64717a", palette.shadow, 0.22), 0.72 * weather.visibility);
     this.ctx.fillRect(x, y - h, w, h);
+    this.ctx.fillStyle = hexToRgba(blendHex("#2c3338", palette.shadow, 0.14), 0.28 * weather.visibility);
+    this.ctx.beginPath();
+    this.ctx.moveTo(x - 4, y - h);
+    this.ctx.lineTo(x + w * 0.5, y - h - 12);
+    this.ctx.lineTo(x + w + 4, y - h);
+    this.ctx.closePath();
+    this.ctx.fill();
     this.ctx.fillStyle = hexToRgba(palette.accent, palette.lampAlpha * 0.78);
     const cols = Math.floor(w / 18);
     const rows = Math.floor(h / 18);

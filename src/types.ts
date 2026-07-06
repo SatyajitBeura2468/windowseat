@@ -54,6 +54,9 @@ export interface JourneyState {
   motion: MotionIntensity;
   sound: boolean;
   focus: boolean;
+  visualDepth: "rich" | "calm";
+  cabinGlow: boolean;
+  glassEffects: boolean;
 }
 
 export interface CoachTheme {

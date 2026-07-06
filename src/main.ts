@@ -15,7 +15,10 @@ const defaultState: JourneyState = {
   time: "evening",
   motion: "steady",
   sound: false,
-  focus: false
+  focus: false,
+  visualDepth: "rich",
+  cabinGlow: true,
+  glassEffects: true
 };
 
 class WindowSeatApp {
@@ -63,9 +66,11 @@ class WindowSeatApp {
           </div>
           <div class="coach-frame">
             <div class="top-panel">
+              <div class="coach-caption" aria-live="polite"></div>
               <div class="route-light"></div>
               <div class="coach-grip left"></div>
               <div class="coach-grip right"></div>
+              <div class="ceiling-vents"></div>
             </div>
             <div class="side-panel left-panel"></div>
             <div class="side-panel right-panel"></div>
@@ -74,14 +79,48 @@ class WindowSeatApp {
             <div class="lower-sill">
               <div class="sill-shadow"></div>
               <div class="track-rhythm"></div>
+              <div class="console-recess"></div>
             </div>
+            <div class="cabin-ambient"></div>
           </div>
         </div>
 
-        <button class="menu-button control-surface" type="button" aria-expanded="true" aria-controls="journey-controls">
+        <button class="menu-button control-surface" type="button" aria-expanded="false" aria-controls="experience-panel">
           ${icon("menu")}
-          <span class="sr-only">Toggle journey controls</span>
+          <span class="sr-only">Open atmosphere options</span>
         </button>
+
+        <aside id="experience-panel" class="experience-panel control-surface" aria-label="Atmosphere options">
+          <div class="panel-heading">
+            <strong>Atmosphere</strong>
+            <span>Coach-integrated view tuning</span>
+          </div>
+          <button type="button" class="panel-toggle" data-action="toggle-depth" aria-pressed="true">
+            ${icon("layers")}
+            <span>
+              <strong>Deep scenery</strong>
+              <em>Denser fields, rails, lamps, and horizon detail</em>
+            </span>
+          </button>
+          <button type="button" class="panel-toggle" data-action="toggle-glass" aria-pressed="true">
+            ${icon("glass")}
+            <span>
+              <strong>Window glass</strong>
+              <em>Reflections, scratches, droplets, and cabin glints</em>
+            </span>
+          </button>
+          <button type="button" class="panel-toggle" data-action="toggle-glow" aria-pressed="true">
+            ${icon("lamp")}
+            <span>
+              <strong>Cabin glow</strong>
+              <em>Warm fittings and natural interior falloff</em>
+            </span>
+          </button>
+          <button type="button" class="panel-random" data-action="cinematic-cut">
+            ${icon("spark")}
+            <span>Cinematic cut</span>
+          </button>
+        </aside>
 
         <form id="journey-controls" class="controls control-surface" aria-label="Journey controls">
           <div class="brand-lockup" aria-live="polite">
@@ -145,7 +184,6 @@ class WindowSeatApp {
           </div>
         </form>
 
-        <div class="coach-caption" aria-live="polite"></div>
         <div class="capture-flash" aria-hidden="true"></div>
       </section>
     `;
@@ -167,8 +205,8 @@ class WindowSeatApp {
     this.root.addEventListener("focusin", () => this.revealControls());
     this.root.querySelector(".aperture")?.addEventListener("click", () => this.toggleFocus());
     menuButton?.addEventListener("click", () => {
-      shell.classList.toggle("controls-open");
-      const open = shell.classList.contains("controls-open");
+      shell.classList.toggle("menu-open");
+      const open = shell.classList.contains("menu-open");
       menuButton.setAttribute("aria-expanded", String(open));
       this.revealControls();
     });
@@ -187,6 +225,18 @@ class WindowSeatApp {
         if (action === "snapshot") {
           this.saveSnapshot();
         }
+        if (action === "toggle-depth") {
+          this.toggleVisualDepth();
+        }
+        if (action === "toggle-glass") {
+          this.toggleGlassEffects();
+        }
+        if (action === "toggle-glow") {
+          this.toggleCabinGlow();
+        }
+        if (action === "cinematic-cut") {
+          this.cinematicCut();
+        }
       });
     });
     window.addEventListener("resize", () => this.renderer?.resize());
@@ -200,8 +250,12 @@ class WindowSeatApp {
       if (event.key.toLowerCase() === "m") {
         await this.toggleSound();
       }
-      if (event.key === "Escape" && this.state.focus) {
-        this.toggleFocus(false);
+      if (event.key === "Escape") {
+        if (shell.classList.contains("menu-open")) {
+          this.closeMenu();
+        } else if (this.state.focus) {
+          this.toggleFocus(false);
+        }
       }
     });
   }
@@ -276,6 +330,41 @@ class WindowSeatApp {
     this.showMilestone("New route");
   }
 
+  private cinematicCut() {
+    const cinematicWeather: Weather[] = ["sunny", "rainy", "stormy", "foggy", "snowy"];
+    const cinematicTimes: TimeOfDay[] = ["dawn", "sunrise", "evening", "dusk", "night", "midnight"];
+    this.state = {
+      ...this.state,
+      weather: cinematicWeather[Math.floor(Math.random() * cinematicWeather.length)],
+      time: cinematicTimes[Math.floor(Math.random() * cinematicTimes.length)],
+      visualDepth: "rich",
+      cabinGlow: true,
+      glassEffects: true
+    };
+    this.saveState();
+    this.syncUi();
+    this.ambience.update(this.state);
+    this.showMilestone("Cinematic cut");
+  }
+
+  private toggleVisualDepth() {
+    this.state.visualDepth = this.state.visualDepth === "rich" ? "calm" : "rich";
+    this.saveState();
+    this.syncUi();
+  }
+
+  private toggleGlassEffects() {
+    this.state.glassEffects = !this.state.glassEffects;
+    this.saveState();
+    this.syncUi();
+  }
+
+  private toggleCabinGlow() {
+    this.state.cabinGlow = !this.state.cabinGlow;
+    this.saveState();
+    this.syncUi();
+  }
+
   private saveSnapshot() {
     const canvas = this.root.querySelector<HTMLCanvasElement>(".journey-canvas");
     const shell = this.getShell();
@@ -294,6 +383,9 @@ class WindowSeatApp {
     const shell = this.getShell();
     shell.dataset.coach = this.state.coach;
     shell.dataset.focus = String(this.state.focus);
+    shell.dataset.depth = this.state.visualDepth;
+    shell.dataset.glass = String(this.state.glassEffects);
+    shell.dataset.glow = String(this.state.cabinGlow);
     shell.style.setProperty("--sway", `${this.getSway()}px`);
     shell.classList.toggle("focus-mode", this.state.focus);
     shell.classList.add("controls-open");
@@ -322,6 +414,15 @@ class WindowSeatApp {
     }
     const focusButton = this.root.querySelector<HTMLButtonElement>('[data-action="focus"]');
     focusButton?.setAttribute("aria-pressed", String(this.state.focus));
+    this.root
+      .querySelector<HTMLButtonElement>('[data-action="toggle-depth"]')
+      ?.setAttribute("aria-pressed", String(this.state.visualDepth === "rich"));
+    this.root
+      .querySelector<HTMLButtonElement>('[data-action="toggle-glass"]')
+      ?.setAttribute("aria-pressed", String(this.state.glassEffects));
+    this.root
+      .querySelector<HTMLButtonElement>('[data-action="toggle-glow"]')
+      ?.setAttribute("aria-pressed", String(this.state.cabinGlow));
   }
 
   private revealControls() {
@@ -346,6 +447,12 @@ class WindowSeatApp {
     milestone.textContent = label;
     milestone.classList.add("is-changing");
     this.milestoneTimer = window.setTimeout(() => milestone.classList.remove("is-changing"), 850);
+  }
+
+  private closeMenu() {
+    const shell = this.getShell();
+    shell.classList.remove("menu-open");
+    this.root.querySelector<HTMLButtonElement>(".menu-button")?.setAttribute("aria-expanded", "false");
   }
 
   private getSway() {
