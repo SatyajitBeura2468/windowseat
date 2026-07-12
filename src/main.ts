@@ -90,7 +90,7 @@ class WindowSeatApp {
           <span class="sr-only">Open atmosphere options</span>
         </button>
 
-        <aside id="experience-panel" class="experience-panel control-surface" aria-label="Atmosphere options">
+        <aside id="experience-panel" class="experience-panel control-surface" aria-label="Atmosphere options" aria-hidden="true" inert>
           <div class="panel-heading">
             <strong>Atmosphere</strong>
             <span>Coach-integrated view tuning</span>
@@ -207,8 +207,18 @@ class WindowSeatApp {
     menuButton?.addEventListener("click", () => {
       shell.classList.toggle("menu-open");
       const open = shell.classList.contains("menu-open");
-      menuButton.setAttribute("aria-expanded", String(open));
+      this.syncMenuState(open);
       this.revealControls();
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (!shell.classList.contains("menu-open")) {
+        return;
+      }
+      const target = event.target as Node;
+      const panel = this.root.querySelector(".experience-panel");
+      if (!panel?.contains(target) && !menuButton?.contains(target)) {
+        this.closeMenu();
+      }
     });
     this.root.querySelectorAll<HTMLButtonElement>("[data-action]").forEach((button) => {
       button.addEventListener("click", async () => {
@@ -241,6 +251,11 @@ class WindowSeatApp {
     });
     window.addEventListener("resize", () => this.renderer?.resize());
     window.addEventListener("keydown", async (event) => {
+      const target = event.target as HTMLElement | null;
+      const isTyping = target?.matches("input, select, textarea, [contenteditable='true']") ?? false;
+      if (isTyping && event.key !== "Escape") {
+        return;
+      }
       if (event.key.toLowerCase() === "f") {
         this.toggleFocus();
       }
@@ -252,7 +267,7 @@ class WindowSeatApp {
       }
       if (event.key === "Escape") {
         if (shell.classList.contains("menu-open")) {
-          this.closeMenu();
+          this.closeMenu(true);
         } else if (this.state.focus) {
           this.toggleFocus(false);
         }
@@ -449,10 +464,23 @@ class WindowSeatApp {
     this.milestoneTimer = window.setTimeout(() => milestone.classList.remove("is-changing"), 850);
   }
 
-  private closeMenu() {
+  private closeMenu(restoreFocus = false) {
     const shell = this.getShell();
     shell.classList.remove("menu-open");
-    this.root.querySelector<HTMLButtonElement>(".menu-button")?.setAttribute("aria-expanded", "false");
+    this.syncMenuState(false);
+    if (restoreFocus) {
+      this.root.querySelector<HTMLButtonElement>(".menu-button")?.focus();
+    }
+  }
+
+  private syncMenuState(open: boolean) {
+    const menuButton = this.root.querySelector<HTMLButtonElement>(".menu-button");
+    const panel = this.root.querySelector<HTMLElement>(".experience-panel");
+    menuButton?.setAttribute("aria-expanded", String(open));
+    panel?.setAttribute("aria-hidden", String(!open));
+    if (panel) {
+      panel.inert = !open;
+    }
   }
 
   private getSway() {

@@ -628,6 +628,8 @@ button {
 .controls input:focus-visible,
 .icon-button:focus-visible,
 .randomize:focus-visible,
+.panel-toggle:focus-visible,
+.panel-random:focus-visible,
 .menu-button:focus-visible {
   outline: none;
   border-color: color-mix(in srgb, var(--coach-highlight) 84%, white);
