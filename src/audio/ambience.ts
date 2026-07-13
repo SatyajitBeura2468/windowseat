@@ -1,7 +1,7 @@
 import { weatherProfiles } from "../data/options";
 import type { Biome, JourneyState, RareEvent } from "../types";
 
-type SampleId = "train" | "rain" | "birds" | "river" | "coast" | "thunder" | "sheep";
+type SampleId = "train" | "rain" | "storm" | "birds" | "river" | "coast" | "thunder" | "sheep";
 type LoopId = Exclude<SampleId, "thunder" | "sheep">;
 
 interface LoopLayer {
@@ -23,6 +23,7 @@ interface SceneMix {
 const sampleUrls: Record<SampleId, string> = {
   train: "/audio/train-interior.ogg",
   rain: "/audio/rain.ogg",
+  storm: "/audio/rain-thunder.ogg",
   birds: "/audio/forest-birds.ogg",
   river: "/audio/river.ogg",
   coast: "/audio/coast.ogg",
@@ -175,7 +176,8 @@ export class AmbienceEngine {
     this.rainFallbackGain?.gain.setTargetAtTime(rainAmount * (this.samples.has("rain") ? 0.018 : 0.12), now, 0.7);
 
     this.setLoop("train", 0.14 * coach.train * scene.train * motionGain, coach.cutoff, motionRate, 0);
-    this.setLoop("rain", 0.18 * rainAmount * (0.72 + coach.exterior * 0.28), 7600, 1, 0.1);
+    this.setLoop("rain", 0.16 * rainAmount * (0.72 + coach.exterior * 0.28), 7600, 1, 0.1);
+    this.setLoop("storm", state.weather === "stormy" ? 0.07 * (0.76 + coach.exterior * 0.24) : 0, 6800, 1, -0.08);
     this.setLoop("birds", 0.12 * scene.birds * birdWeather * (daylight ? 1 : night ? 0.05 : 0.32), 6200, 1, -0.14);
     this.setLoop("river", 0.13 * scene.river, 4800, 1, 0.22);
     this.setLoop("coast", 0.15 * scene.coast, 5600, 1, -0.18);
@@ -271,7 +273,7 @@ export class AmbienceEngine {
         this.samples.set(result.value[0], result.value[1]);
       }
     }
-    for (const id of ["train", "rain", "birds", "river", "coast"] as const) {
+    for (const id of ["train", "rain", "storm", "birds", "river", "coast"] as const) {
       this.createLoop(id);
     }
   }
