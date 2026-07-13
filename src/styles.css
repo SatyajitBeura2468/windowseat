@@ -727,6 +727,15 @@ button {
   background: var(--coach-highlight);
 }
 
+.icon-button[aria-busy="true"] {
+  cursor: progress;
+  pointer-events: none;
+}
+
+.icon-button[aria-busy="true"] svg {
+  animation: soundscapeLoading 900ms linear infinite;
+}
+
 .coach-caption {
   position: absolute;
   z-index: 5;
@@ -1174,6 +1183,12 @@ button {
   51.4% {
     transform: translate3d(calc(var(--sway) * -0.28), 0, 0) rotate(-0.02deg);
     filter: brightness(1);
+  }
+}
+
+@keyframes soundscapeLoading {
+  to {
+    transform: rotate(1turn);
   }
 }
 

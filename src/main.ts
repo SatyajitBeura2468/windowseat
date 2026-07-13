@@ -45,7 +45,7 @@ class WindowSeatApp {
       if (!saved) {
         return { ...defaultState };
       }
-      return { ...defaultState, ...JSON.parse(saved) } as JourneyState;
+      return { ...defaultState, ...JSON.parse(saved), sound: false } as JourneyState;
     } catch {
       return { ...defaultState };
     }
@@ -305,7 +305,9 @@ class WindowSeatApp {
     this.renderer = new JourneyRenderer({
       canvas,
       getState: () => this.state,
-      onMilestone: (label) => this.showMilestone(label)
+      onMilestone: (label) => this.showMilestone(label),
+      onEnvironmentChange: (biome) => this.ambience.setBiome(biome),
+      onRareEvent: (event) => this.ambience.playEvent(event)
     });
     this.renderer.randomizeDistance(this.state.seed);
     this.renderer.start();
@@ -335,10 +337,16 @@ class WindowSeatApp {
   }
 
   private async toggleSound() {
+    const button = this.root.querySelector<HTMLButtonElement>('[data-action="sound"]');
+    button?.setAttribute("aria-busy", "true");
     this.state.sound = !this.state.sound;
-    await this.ambience.setEnabled(this.state.sound, this.state);
-    this.saveState();
-    this.syncUi();
+    try {
+      await this.ambience.setEnabled(this.state.sound, this.state);
+      this.saveState();
+      this.syncUi();
+    } finally {
+      button?.removeAttribute("aria-busy");
+    }
   }
 
   private toggleFocus(force?: boolean) {
@@ -447,6 +455,8 @@ class WindowSeatApp {
     const soundButton = this.root.querySelector<HTMLButtonElement>('[data-action="sound"]');
     if (soundButton) {
       soundButton.setAttribute("aria-pressed", String(this.state.sound));
+      soundButton.setAttribute("aria-label", this.state.sound ? "Mute dynamic soundscape" : "Enable dynamic soundscape");
+      soundButton.title = this.state.sound ? "Mute dynamic soundscape" : "Enable dynamic soundscape";
       soundButton.innerHTML = `${icon(this.state.sound ? "sound" : "mute")}<span class="sr-only">Toggle sound</span>`;
     }
     const focusButton = this.root.querySelector<HTMLButtonElement>('[data-action="focus"]');

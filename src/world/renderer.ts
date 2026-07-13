@@ -7,6 +7,8 @@ interface RendererOptions {
   canvas: HTMLCanvasElement;
   getState: () => JourneyState;
   onMilestone?: (label: string) => void;
+  onEnvironmentChange?: (biome: Biome) => void;
+  onRareEvent?: (event: RareEvent) => void;
 }
 
 interface Size {
@@ -47,8 +49,11 @@ export class JourneyRenderer {
   private startTime = 0;
   private milestone = "";
   private onMilestone?: (label: string) => void;
+  private onEnvironmentChange?: (biome: Biome) => void;
+  private onRareEvent?: (event: RareEvent) => void;
+  private soundedEvents = new Set<string>();
 
-  constructor({ canvas, getState, onMilestone }: RendererOptions) {
+  constructor({ canvas, getState, onMilestone, onEnvironmentChange, onRareEvent }: RendererOptions) {
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) {
       throw new Error("Canvas rendering is not available in this browser.");
@@ -57,6 +62,8 @@ export class JourneyRenderer {
     this.ctx = ctx;
     this.getState = getState;
     this.onMilestone = onMilestone;
+    this.onEnvironmentChange = onEnvironmentChange;
+    this.onRareEvent = onRareEvent;
     this.resize();
   }
 
@@ -93,6 +100,7 @@ export class JourneyRenderer {
 
   randomizeDistance(seed: string) {
     this.distance = seededRange(seed, "start-distance", 0, 6000);
+    this.soundedEvents.clear();
   }
 
   getCurrentDistance() {
@@ -645,6 +653,16 @@ export class JourneyRenderer {
       const x = width - (this.distance - event.anchor) * eventSpeed(event.type);
       if (x < -width * 0.9 || x > width * 1.8) {
         continue;
+      }
+      if (x <= width * 0.88 && x > -width * 0.2 && !this.soundedEvents.has(event.salt)) {
+        this.soundedEvents.add(event.salt);
+        this.onRareEvent?.(event.type);
+        if (this.soundedEvents.size > 128) {
+          const oldest = this.soundedEvents.values().next().value;
+          if (oldest) {
+            this.soundedEvents.delete(oldest);
+          }
+        }
       }
       const progress = clamp((width - x) / width, 0, 1);
       switch (event.type) {
@@ -1294,6 +1312,7 @@ export class JourneyRenderer {
       return;
     }
     this.milestone = label;
+    this.onEnvironmentChange?.(biome);
     this.onMilestone?.(formatBiome(biome));
   }
 }
