@@ -44,7 +44,9 @@ export type RareEvent =
   | "signals"
   | "village-lights"
   | "road"
-  | "mist";
+  | "mist"
+  | "sheep"
+  | "waterfall";
 
 export interface JourneyState {
   coach: CoachStyle;

@@ -63,6 +63,14 @@ class WindowSeatApp {
             <canvas class="journey-canvas"></canvas>
             <div class="window-reflection"></div>
             <div class="window-vignette"></div>
+            <div class="window-hardware">
+              <div class="window-bars">
+                <i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="window-mullion"><span></span></div>
+              <div class="window-latch"></div>
+              <div class="sealed-glass-edge"></div>
+            </div>
           </div>
           <div class="coach-frame">
             <div class="top-panel">
@@ -71,15 +79,29 @@ class WindowSeatApp {
               <div class="coach-grip left"></div>
               <div class="coach-grip right"></div>
               <div class="ceiling-vents"></div>
+              <div class="reading-light left-light"></div>
+              <div class="reading-light right-light"></div>
+              <div class="berth-chain left-chain"></div>
+              <div class="berth-chain right-chain"></div>
             </div>
-            <div class="side-panel left-panel"></div>
-            <div class="side-panel right-panel"></div>
+            <div class="side-panel left-panel">
+              <div class="luggage-mesh"></div>
+              <div class="bottle-holder"><span></span></div>
+              <div class="fixture-plate fixture-left"><i></i><i></i><i></i><i></i></div>
+            </div>
+            <div class="side-panel right-panel">
+              <div class="emergency-recess"><span></span></div>
+              <div class="power-panel"><i></i><i></i></div>
+              <div class="fixture-plate fixture-right"><i></i><i></i><i></i><i></i></div>
+            </div>
             <div class="seat-edge left-seat"></div>
             <div class="seat-edge right-seat"></div>
             <div class="lower-sill">
               <div class="sill-shadow"></div>
               <div class="track-rhythm"></div>
               <div class="console-recess"></div>
+              <div class="coach-serial">WS 24-07</div>
+              <div class="panel-fasteners"><i></i><i></i><i></i><i></i></div>
             </div>
             <div class="cabin-ambient"></div>
           </div>

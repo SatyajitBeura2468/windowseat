@@ -120,6 +120,7 @@ export class JourneyRenderer {
     this.drawSky(palette, weather, state.seed, elapsed);
     this.drawCelestial(palette, weather, state.seed, elapsed);
     this.drawClouds(palette, weather, state.seed, elapsed);
+    this.drawWeatherLight(palette, weather, state.seed, elapsed);
     this.drawAtmosphericDepth(biome, palette, weather, state.seed);
     this.drawTerrainLayer("far", biome, palette, weather, state.seed, elapsed, 0.1);
     this.drawTerrainLayer("mid", biome, palette, weather, state.seed, elapsed, 0.32);
@@ -226,6 +227,34 @@ export class JourneyRenderer {
     this.ctx.ellipse(x + radius * 0.55, y - radius * 0.12, radius * 0.82, radius * 0.46, 0, 0, Math.PI * 2);
     this.ctx.ellipse(x - radius * 0.58, y + radius * 0.03, radius * 0.72, radius * 0.34, 0, 0, Math.PI * 2);
     this.ctx.fill();
+    this.ctx.restore();
+  }
+
+  private drawWeatherLight(palette: TimePalette, weather: WeatherProfile, seed: string, elapsed: number) {
+    const { width, height } = this.size;
+    const stormBreak = weather.cloudCover > 0.56 && weather.visibility > 0.52;
+    if (!stormBreak || !this.isRichScene()) {
+      return;
+    }
+    this.ctx.save();
+    this.ctx.globalCompositeOperation = "screen";
+    const drift = Math.sin(elapsed * 0.035 + seededUnit(seed, "shaft-phase") * Math.PI * 2) * width * 0.04;
+    for (let i = 0; i < 4; i += 1) {
+      const x = width * seededRange(seed, `shaft-x:${i}`, 0.12, 0.86) + drift;
+      const spread = width * seededRange(seed, `shaft-w:${i}`, 0.07, 0.16);
+      const beam = this.ctx.createLinearGradient(x, height * 0.08, x + spread * 0.42, height * 0.76);
+      beam.addColorStop(0, hexToRgba(palette.light, 0));
+      beam.addColorStop(0.28, hexToRgba(palette.light, 0.045 + weather.cloudCover * 0.028));
+      beam.addColorStop(1, hexToRgba(palette.light, 0));
+      this.ctx.fillStyle = beam;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x - spread * 0.18, height * 0.1);
+      this.ctx.lineTo(x + spread * 0.2, height * 0.1);
+      this.ctx.lineTo(x + spread, height * 0.8);
+      this.ctx.lineTo(x - spread * 0.55, height * 0.8);
+      this.ctx.closePath();
+      this.ctx.fill();
+    }
     this.ctx.restore();
   }
 
@@ -429,6 +458,20 @@ export class JourneyRenderer {
 
     if (rich && ["urban", "village", "station", "farmland"].includes(biome)) {
       this.drawDistantWires(palette, weather, seed, elapsed);
+    }
+
+    if (rich && ["fields", "farmland", "plains", "hills", "village"].includes(biome)) {
+      const herdX = ((seededRange(seed, "landscape-herd", 0, width * 1.8) - this.distance * 0.21) % (width + 260)) - 130;
+      this.drawSheepHerd(herdX, height * 0.69, palette, weather, 0.7, elapsed);
+    }
+
+    if (rich && ["mountains", "hills", "foglands"].includes(biome)) {
+      const fallX = ((seededRange(seed, "landscape-fall", 0, width * 1.6) - this.distance * 0.085) % (width + 240)) - 120;
+      this.drawWaterfall(fallX, height * 0.58, palette, weather, 0.62);
+    }
+
+    if (["river", "coast", "bridge"].includes(biome)) {
+      this.drawRiverLife(palette, weather, seed, elapsed);
     }
   }
 
@@ -640,6 +683,12 @@ export class JourneyRenderer {
           break;
         case "mist":
           this.drawMistBank(x, height * 0.62, palette, event.strength);
+          break;
+        case "sheep":
+          this.drawSheepHerd(x, height * 0.76, palette, weather, event.strength, elapsed);
+          break;
+        case "waterfall":
+          this.drawWaterfall(x, height * 0.6, palette, weather, event.strength);
           break;
       }
     }
@@ -1144,6 +1193,101 @@ export class JourneyRenderer {
     this.ctx.restore();
   }
 
+  private drawSheepHerd(
+    x: number,
+    y: number,
+    palette: TimePalette,
+    weather: WeatherProfile,
+    strength: number,
+    elapsed: number
+  ) {
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.58 * weather.visibility * strength;
+    for (let i = 0; i < 11; i += 1) {
+      const sx = x + (i % 6) * 25 + Math.sin(i * 2.1) * 8;
+      const sy = y + Math.floor(i / 6) * 17 + Math.sin(i * 1.4) * 5;
+      const bob = Math.sin(elapsed * 1.2 + i) * 0.8;
+      this.ctx.fillStyle = blendHex("#eee9dd", palette.light, 0.18);
+      this.ctx.beginPath();
+      this.ctx.ellipse(sx, sy - 7 + bob, 9, 6, -0.08, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.fillStyle = blendHex("#4a423d", palette.shadow, 0.2);
+      this.ctx.beginPath();
+      this.ctx.ellipse(sx + 8, sy - 9 + bob, 3.6, 3, 0.2, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.strokeStyle = this.ctx.fillStyle;
+      this.ctx.lineWidth = 1.2;
+      this.ctx.beginPath();
+      this.ctx.moveTo(sx - 4, sy - 2);
+      this.ctx.lineTo(sx - 5, sy + 5);
+      this.ctx.moveTo(sx + 3, sy - 2);
+      this.ctx.lineTo(sx + 4, sy + 5);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+  }
+
+  private drawWaterfall(
+    x: number,
+    y: number,
+    palette: TimePalette,
+    weather: WeatherProfile,
+    strength: number
+  ) {
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.42 * weather.visibility * strength;
+    const fall = this.ctx.createLinearGradient(x, y - 118, x, y + 16);
+    fall.addColorStop(0, hexToRgba(palette.light, 0.12));
+    fall.addColorStop(0.4, "rgba(225,244,250,0.78)");
+    fall.addColorStop(1, "rgba(199,229,238,0.16)");
+    this.ctx.strokeStyle = fall;
+    this.ctx.lineWidth = 5;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y - 118);
+    this.ctx.bezierCurveTo(x - 8, y - 72, x + 10, y - 36, x - 2, y);
+    this.ctx.stroke();
+    this.ctx.fillStyle = "rgba(226,244,247,0.22)";
+    this.ctx.beginPath();
+    this.ctx.ellipse(x, y + 2, 24, 7, 0, 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.restore();
+  }
+
+  private drawRiverLife(palette: TimePalette, weather: WeatherProfile, seed: string, elapsed: number) {
+    const { width, height } = this.size;
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.48 * weather.visibility;
+    for (let i = 0; i < 3; i += 1) {
+      const x = ((seededRange(seed, `boat:${i}`, 0, width * 1.5) - this.distance * 0.16) % (width + 160)) - 80;
+      const y = height * seededRange(seed, `boat-y:${i}`, 0.68, 0.78);
+      this.ctx.fillStyle = blendHex("#5d3527", palette.shadow, 0.18);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x - 18, y);
+      this.ctx.quadraticCurveTo(x, y + 8, x + 20, y);
+      this.ctx.lineTo(x + 14, y + 7);
+      this.ctx.lineTo(x - 12, y + 7);
+      this.ctx.closePath();
+      this.ctx.fill();
+      this.ctx.strokeStyle = hexToRgba(palette.light, 0.24);
+      this.ctx.lineWidth = 1;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x - 22, y + 11 + Math.sin(elapsed + i));
+      this.ctx.lineTo(x + 28, y + 11);
+      this.ctx.stroke();
+    }
+    for (let i = 0; i < 28; i += 1) {
+      const x = ((seededRange(seed, `reed:${i}`, 0, width * 1.4) - this.distance * 0.48) % (width + 70)) - 35;
+      const y = height * seededRange(seed, `reed-y:${i}`, 0.76, 0.88);
+      const h = seededRange(seed, `reed-h:${i}`, 12, 34);
+      this.ctx.strokeStyle = hexToRgba(blendHex("#496a42", palette.groundTint, 0.2), 0.5);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, y);
+      this.ctx.quadraticCurveTo(x + weather.wind * 5, y - h * 0.55, x + weather.wind * 7, y - h);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
+  }
+
   private reportMilestone(biome: Biome, weather: string) {
     const label = `${biome}:${weather}`;
     if (label === this.milestone) {
@@ -1160,6 +1304,12 @@ function eventSpeed(type: RareEvent) {
   }
   if (type === "birds") {
     return 0.38;
+  }
+  if (type === "sheep") {
+    return 0.52;
+  }
+  if (type === "waterfall") {
+    return 0.22;
   }
   if (type === "lightning" || type === "rainbow" || type === "mist") {
     return 0.26;

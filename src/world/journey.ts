@@ -33,7 +33,9 @@ const rareEvents: RareEvent[] = [
   "signals",
   "village-lights",
   "road",
-  "mist"
+  "mist",
+  "sheep",
+  "waterfall"
 ];
 
 export interface BiomeBlend {

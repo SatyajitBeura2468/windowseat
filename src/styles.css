@@ -72,7 +72,7 @@ button {
   position: absolute;
   inset: 0;
   transform-origin: 50% 52%;
-  animation: coachSway 7.5s ease-in-out infinite, coachJitter 0.82s linear infinite;
+  animation: coachRide 18s linear infinite;
   will-change: transform;
 }
 
@@ -267,11 +267,11 @@ button {
 .console-recess {
   position: absolute;
   left: 50%;
-  bottom: max(14px, env(safe-area-inset-bottom));
+  bottom: max(20px, env(safe-area-inset-bottom));
   width: min(calc(100vw - 34px), 1195px);
   height: 86px;
   transform: translateX(-50%);
-  border-radius: 30px;
+  border-radius: 13px;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.34), rgba(255, 255, 255, 0.08) 9%, rgba(0, 0, 0, 0.2)),
     color-mix(in srgb, var(--coach-cabin-deep) 54%, transparent);
@@ -279,7 +279,7 @@ button {
     inset 0 2px 12px rgba(0, 0, 0, 0.45),
     inset 0 -1px rgba(255, 255, 255, 0.2),
     0 16px 32px rgba(0, 0, 0, 0.18);
-  opacity: 0.76;
+  opacity: 0.9;
 }
 
 .sill-shadow {
@@ -358,7 +358,7 @@ button {
     0 18px 44px rgba(0, 0, 0, 0.28),
     inset 0 1px rgba(255, 255, 255, 0.2),
     inset 0 -1px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(22px) saturate(130%);
+  backdrop-filter: blur(12px) saturate(112%);
 }
 
 .menu-button {
@@ -401,7 +401,7 @@ button {
   right: max(18px, env(safe-area-inset-right));
   width: min(330px, calc(100vw - 36px));
   padding: 12px;
-  border-radius: 24px;
+  border-radius: 12px;
   transform: translateY(-10px) scale(0.97);
   transform-origin: top right;
   opacity: 0;
@@ -458,7 +458,7 @@ button {
   align-items: center;
   margin-top: 7px;
   padding: 9px;
-  border-radius: 16px;
+  border-radius: 7px;
   text-align: left;
 }
 
@@ -492,7 +492,7 @@ button {
   gap: 9px;
   min-height: 40px;
   margin-top: 10px;
-  border-radius: 999px;
+  border-radius: 7px;
   font-weight: 760;
 }
 
@@ -500,14 +500,14 @@ button {
   position: fixed;
   z-index: 7;
   left: 50%;
-  bottom: max(18px, env(safe-area-inset-bottom));
+  bottom: max(14px, env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: auto minmax(128px, 170px) minmax(128px, 190px) minmax(116px, 150px) minmax(116px, 160px) auto auto;
-  gap: 10px;
+  grid-template-columns: 146px minmax(112px, 1fr) minmax(128px, 1.15fr) minmax(104px, 0.86fr) minmax(104px, 0.9fr) 176px auto;
+  gap: 9px;
   align-items: end;
-  width: min(calc(100vw - 40px), 1160px);
-  padding: 11px 12px 12px;
-  border-radius: 28px;
+  width: min(calc(100vw - 34px), 1240px);
+  padding: 10px 11px 11px;
+  border-radius: 12px;
   transform: translate(-50%, 18px);
   opacity: 0;
   pointer-events: none;
@@ -519,9 +519,9 @@ button {
 .controls::before {
   content: "";
   position: absolute;
-  inset: 5px;
+  inset: 3px;
   z-index: -1;
-  border-radius: 24px;
+  border-radius: 9px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
     linear-gradient(90deg, transparent, color-mix(in srgb, var(--coach-trim) 14%, transparent), transparent);
@@ -547,7 +547,7 @@ button {
 .brand-lockup {
   display: flex;
   align-items: center;
-  min-width: 156px;
+  min-width: 0;
   gap: 10px;
   padding: 8px 11px 8px 8px;
 }
@@ -608,9 +608,9 @@ button {
 .controls select,
 .controls input[type="text"] {
   width: 100%;
-  min-height: 38px;
+  min-height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 14px;
+  border-radius: 5px;
   padding: 0 32px 0 12px;
   color: #f8fbff;
   background:
@@ -640,7 +640,7 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
-  min-width: 188px;
+  min-width: 176px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -662,10 +662,10 @@ button {
 
 .segmented label span {
   display: grid;
-  min-height: 38px;
+  min-height: 36px;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  border-radius: 5px;
   color: rgba(244, 249, 252, 0.76);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.08)),
@@ -690,7 +690,7 @@ button {
 .icon-button,
 .randomize {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 36px;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -702,15 +702,15 @@ button {
 }
 
 .icon-button {
-  width: 40px;
-  border-radius: 50%;
+  width: 36px;
+  border-radius: 5px;
 }
 
 .randomize {
   gap: 8px;
-  min-width: 122px;
-  border-radius: 999px;
-  padding: 0 15px 0 13px;
+  min-width: 116px;
+  border-radius: 5px;
+  padding: 0 12px 0 11px;
   font-size: 0.82rem;
   font-weight: 760;
 }
@@ -782,6 +782,338 @@ button {
   animation: captureFlash 520ms ease-out;
 }
 
+.window-hardware,
+.window-bars,
+.sealed-glass-edge {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.window-hardware {
+  z-index: 4;
+}
+
+.window-bars,
+.window-mullion,
+.window-latch {
+  opacity: 0;
+  transition: opacity 360ms var(--ease-cinematic);
+}
+
+.window-bars i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(14% + var(--bar-index, 0) * 16%);
+  height: clamp(5px, 0.55vw, 9px);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(50, 56, 58, 0.32) 34%, rgba(6, 9, 11, 0.62) 66%, rgba(255, 255, 255, 0.2)),
+    color-mix(in srgb, var(--coach-metal) 72%, #394146);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.32), inset 0 1px rgba(255, 255, 255, 0.44);
+}
+
+.window-bars i:nth-child(1) { --bar-index: 0; }
+.window-bars i:nth-child(2) { --bar-index: 1; }
+.window-bars i:nth-child(3) { --bar-index: 2; }
+.window-bars i:nth-child(4) { --bar-index: 3; }
+.window-bars i:nth-child(5) { --bar-index: 4; }
+
+.window-mullion {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: clamp(13px, 1.2vw, 20px);
+  transform: translateX(-50%);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.58), rgba(255, 255, 255, 0.34) 22%, rgba(30, 36, 39, 0.72) 56%, rgba(255, 255, 255, 0.16));
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.34);
+}
+
+.window-mullion span,
+.window-latch {
+  position: absolute;
+  left: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, var(--coach-metal), color-mix(in srgb, var(--coach-metal) 38%, #1a1f22));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), inset 0 1px rgba(255, 255, 255, 0.46);
+}
+
+.window-mullion span {
+  top: 9%;
+  width: 34px;
+  height: 48px;
+  border-radius: 4px;
+  transform: translateX(-50%);
+}
+
+.window-latch {
+  top: 2.5%;
+  width: 76px;
+  height: 26px;
+  border-radius: 5px;
+  transform: translateX(-50%);
+}
+
+.sealed-glass-edge {
+  border: clamp(6px, 0.6vw, 10px) solid rgba(9, 15, 18, 0.72);
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.16),
+    inset 0 0 34px rgba(205, 228, 241, 0.09);
+  opacity: 0;
+  transition: opacity 360ms var(--ease-cinematic);
+}
+
+.reading-light,
+.berth-chain {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 360ms var(--ease-cinematic);
+}
+
+.reading-light {
+  top: 24px;
+  width: 34px;
+  height: 20px;
+  border: 5px solid color-mix(in srgb, var(--coach-metal) 72%, var(--coach-cabin));
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--coach-highlight) 88%, #ffd08f);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--coach-highlight) 42%, transparent);
+}
+
+.left-light { left: clamp(118px, 11vw, 180px); }
+.right-light { right: clamp(118px, 11vw, 180px); }
+
+.berth-chain {
+  top: 38px;
+  width: 8px;
+  height: clamp(54px, 9vh, 90px);
+  background: repeating-linear-gradient(180deg, transparent 0 5px, color-mix(in srgb, var(--coach-metal) 76%, #2c3539) 5px 10px);
+  filter: drop-shadow(2px 2px 2px rgba(0,0,0,.34));
+}
+
+.left-chain { left: clamp(54px, 8vw, 124px); }
+.right-chain { right: clamp(54px, 8vw, 124px); }
+
+.luggage-mesh,
+.bottle-holder,
+.emergency-recess,
+.power-panel,
+.fixture-plate,
+.coach-serial,
+.panel-fasteners {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 360ms var(--ease-cinematic);
+}
+
+.luggage-mesh {
+  top: 5%;
+  left: 34%;
+  width: clamp(86px, 12vw, 170px);
+  height: clamp(54px, 10vh, 94px);
+  border: 5px solid color-mix(in srgb, var(--coach-metal) 74%, #343b3f);
+  background:
+    repeating-linear-gradient(45deg, transparent 0 9px, rgba(16, 24, 27, 0.58) 9px 11px),
+    repeating-linear-gradient(-45deg, transparent 0 9px, rgba(16, 24, 27, 0.58) 9px 11px);
+  box-shadow: 6px 8px 18px rgba(0,0,0,.28);
+}
+
+.bottle-holder {
+  bottom: 18%;
+  left: 50%;
+  width: 34px;
+  height: 112px;
+  border: 3px solid color-mix(in srgb, var(--coach-metal) 68%, #30383c);
+  border-radius: 8px;
+  transform: translateX(-50%);
+}
+
+.bottle-holder span {
+  position: absolute;
+  inset: 12px 7px 7px;
+  border-radius: 7px 7px 12px 12px;
+  background: linear-gradient(90deg, #68757a, #d4dcdd 45%, #515d62);
+}
+
+.emergency-recess {
+  top: 20%;
+  left: 50%;
+  width: 48px;
+  height: 118px;
+  border: 2px solid rgba(0,0,0,.54);
+  border-radius: 7px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--coach-cabin-deep) 76%, #121619);
+  box-shadow: inset 0 0 12px rgba(0,0,0,.48), 0 1px rgba(255,255,255,.16);
+}
+
+.emergency-recess span {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  width: 8px;
+  height: 74px;
+  border-radius: 4px;
+  transform: rotate(18deg);
+  background: #ad332c;
+  box-shadow: 0 0 0 3px #4f2020;
+}
+
+.power-panel {
+  right: 18%;
+  bottom: 15%;
+  width: 42px;
+  height: 74px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--coach-cabin-deep) 84%, #101519);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.15), 0 4px 12px rgba(0,0,0,.24);
+}
+
+.power-panel i {
+  display: block;
+  width: 22px;
+  height: 8px;
+  margin: 18px auto -7px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 2px;
+}
+
+.fixture-plate {
+  top: 34%;
+  left: 50%;
+  width: 54%;
+  height: 28%;
+  border: 1px solid rgba(255,255,255,.17);
+  border-radius: 7px;
+  transform: translateX(-50%);
+  box-shadow: inset 0 0 18px rgba(0,0,0,.16);
+}
+
+.fixture-plate i,
+.panel-fasteners i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--coach-metal) 64%, #30383c);
+  box-shadow: inset 1px 1px rgba(255,255,255,.32);
+}
+
+.fixture-plate i:nth-child(1) { left: 5px; top: 5px; }
+.fixture-plate i:nth-child(2) { right: 5px; top: 5px; }
+.fixture-plate i:nth-child(3) { left: 5px; bottom: 5px; }
+.fixture-plate i:nth-child(4) { right: 5px; bottom: 5px; }
+
+.coach-serial {
+  left: 22px;
+  bottom: 16px;
+  color: color-mix(in srgb, var(--coach-cabin-deep) 68%, var(--coach-metal));
+  font: 700 0.58rem/1 ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.panel-fasteners {
+  inset: 0;
+}
+
+.panel-fasteners i:nth-child(1) { left: 18px; top: 16px; }
+.panel-fasteners i:nth-child(2) { right: 18px; top: 16px; }
+.panel-fasteners i:nth-child(3) { left: 18px; bottom: 16px; }
+.panel-fasteners i:nth-child(4) { right: 18px; bottom: 16px; }
+
+.windowseat[data-coach="sleeper"] .window-bars,
+.windowseat[data-coach="sleeper"] .window-mullion,
+.windowseat[data-coach="sleeper"] .window-latch,
+.windowseat[data-coach="sleeper"] .berth-chain,
+.windowseat[data-coach="sleeper"] .luggage-mesh,
+.windowseat[data-coach="sleeper"] .bottle-holder,
+.windowseat[data-coach="sleeper"] .coach-serial,
+.windowseat[data-coach="sleeper"] .panel-fasteners {
+  opacity: 1;
+}
+
+.windowseat[data-coach="first"] .sealed-glass-edge,
+.windowseat[data-coach="first"] .reading-light,
+.windowseat[data-coach="first"] .fixture-plate,
+.windowseat[data-coach="first"] .coach-serial,
+.windowseat[data-coach="first"] .panel-fasteners {
+  opacity: 1;
+}
+
+.windowseat[data-coach="chair"] .sealed-glass-edge,
+.windowseat[data-coach="chair"] .reading-light,
+.windowseat[data-coach="chair"] .emergency-recess,
+.windowseat[data-coach="chair"] .power-panel,
+.windowseat[data-coach="chair"] .panel-fasteners,
+.windowseat[data-coach="vande"] .sealed-glass-edge,
+.windowseat[data-coach="vande"] .reading-light,
+.windowseat[data-coach="vande"] .emergency-recess,
+.windowseat[data-coach="vande"] .power-panel,
+.windowseat[data-coach="vande"] .panel-fasteners {
+  opacity: 1;
+}
+
+.windowseat[data-coach="luggage"] .window-bars,
+.windowseat[data-coach="luggage"] .window-mullion,
+.windowseat[data-coach="luggage"] .luggage-mesh,
+.windowseat[data-coach="luggage"] .fixture-plate,
+.windowseat[data-coach="luggage"] .coach-serial,
+.windowseat[data-coach="luggage"] .panel-fasteners {
+  opacity: 1;
+}
+
+.windowseat[data-coach="first"] .side-panel {
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 24px),
+    linear-gradient(90deg, #23130d, var(--coach-cabin) 58%, #1a0e0a);
+}
+
+.windowseat[data-coach="chair"] .top-panel,
+.windowseat[data-coach="vande"] .top-panel {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 18px, rgba(16,33,43,.16) 18px 21px),
+    linear-gradient(180deg, color-mix(in srgb, var(--coach-highlight) 72%, var(--coach-cabin)), var(--coach-cabin));
+}
+
+.windowseat[data-coach="luggage"] .seat-edge {
+  border-radius: 6px 6px 0 0;
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.04) 0 7px, transparent 7px 14px),
+    linear-gradient(180deg, var(--coach-cloth), color-mix(in srgb, var(--coach-cloth) 58%, black));
+}
+
+.windowseat[data-coach="sleeper"] .motion-stage { animation-duration: 15.5s; }
+.windowseat[data-coach="first"] .motion-stage { animation-duration: 21s; }
+.windowseat[data-coach="chair"] .motion-stage { animation-duration: 17.5s; }
+.windowseat[data-coach="luggage"] .motion-stage { animation-duration: 12.5s; }
+.windowseat[data-coach="vande"] .motion-stage { animation-duration: 24s; }
+
+.windowseat[data-coach="sleeper"] .controls,
+.windowseat[data-coach="luggage"] .controls {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.1), rgba(0,0,0,.28)),
+    color-mix(in srgb, var(--coach-cabin-deep) 82%, #252b2e);
+}
+
+.windowseat[data-coach="first"] .controls {
+  border-color: color-mix(in srgb, var(--coach-trim) 60%, #312014);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 24px),
+    linear-gradient(180deg, #4b3326, #21130e);
+}
+
+.windowseat[data-coach="chair"] .controls,
+.windowseat[data-coach="vande"] .controls {
+  border-color: color-mix(in srgb, var(--coach-trim-soft) 48%, #71808a);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.18), rgba(0,0,0,.2)),
+    color-mix(in srgb, var(--coach-cabin-deep) 72%, #26333b);
+}
+
 .windowseat[data-coach="sleeper"] .aperture {
   border-radius: 18px;
 }
@@ -815,23 +1147,33 @@ button {
   height: 7px;
 }
 
-@keyframes coachSway {
-  0%,
-  100% {
-    transform: translate3d(calc(var(--sway) * -0.7), 0, 0) rotate(-0.08deg);
+@keyframes coachRide {
+  0%, 12%, 24%, 38%, 66%, 82%, 100% {
+    transform: translate3d(calc(var(--sway) * -0.45), 0, 0) rotate(-0.035deg);
+    filter: brightness(1);
   }
-  50% {
-    transform: translate3d(calc(var(--sway) * 0.7), 1px, 0) rotate(0.08deg);
+  6%, 18%, 31%, 73%, 91% {
+    transform: translate3d(calc(var(--sway) * 0.5), 0.7px, 0) rotate(0.045deg);
   }
-}
-
-@keyframes coachJitter {
-  0%,
-  100% {
-    filter: none;
+  47% {
+    transform: translate3d(calc(var(--sway) * 0.22), 0, 0) rotate(0.01deg);
   }
-  50% {
-    filter: brightness(1.006);
+  48% {
+    transform: translate3d(calc(var(--sway) * -0.95), -1.2px, 0) rotate(-0.09deg);
+    filter: brightness(1.008);
+  }
+  48.7% {
+    transform: translate3d(calc(var(--sway) * 1.1), 1.5px, 0) rotate(0.11deg);
+  }
+  49.5% {
+    transform: translate3d(calc(var(--sway) * -0.72), -0.6px, 0) rotate(-0.055deg);
+  }
+  50.4% {
+    transform: translate3d(calc(var(--sway) * 0.74), 0.9px, 0) rotate(0.06deg);
+  }
+  51.4% {
+    transform: translate3d(calc(var(--sway) * -0.28), 0, 0) rotate(-0.02deg);
+    filter: brightness(1);
   }
 }
 
