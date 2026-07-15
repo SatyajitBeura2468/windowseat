@@ -6,7 +6,7 @@
 
 **A cinematic, procedural train-window experience inspired by journeys across India.**
 
-Watch landscapes unfold, weather drift in, daylight change, and the coach quietly move around you—without a destination, a timer, or anything demanding your attention.
+Watch landscapes unfold, weather drift in, daylight change, and the coach quietly move around you:without a destination, a timer, or anything demanding your attention.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)
@@ -14,13 +14,15 @@ Watch landscapes unfold, weather drift in, daylight change, and the coach quietl
 ![Runtime dependencies](https://img.shields.io/badge/runtime_dependencies-0-2F855A?style=flat-square)
 [![License: MIT](https://img.shields.io/badge/License-MIT-EAB308?style=flat-square)](LICENSE)
 
+[![Open WindowSeat](https://img.shields.io/badge/OPEN_WINDOWSEAT-LIVE_ON_VERCEL-111827?style=for-the-badge&logo=vercel&logoColor=white)](https://windowseat-seven.vercel.app)
+
 </div>
 
 ---
 
 ## In short
 
-> **WindowSeat turns your browser into a moving train window.** Choose a coach, route seed, weather, time of day, and pace—then settle into an endlessly generated journey with layered scenery and responsive sound.
+> **WindowSeat turns your browser into a moving train window.** Choose a coach, route seed, weather, time of day, and pace:then settle into an endlessly generated journey with layered scenery and responsive sound.
 
 It is less about getting somewhere and more about that familiar, quiet feeling of watching the world pass by.
 
@@ -28,14 +30,14 @@ It is less about getting somewhere and more about that familiar, quiet feeling o
 
 | | What it brings to the journey |
 |:--:|---|
-| 🌄 | **Procedural routes** — reproducible journeys generated from a route seed |
-| 🌦️ | **Living atmosphere** — sun, cloud, rain, storms, fog, and snow |
-| 🕰️ | **Eight times of day** — from early dawn to midnight blue |
-| 🚃 | **Five coach moods** — sleeper, first-class, chair car, luggage-view, and modern premium |
-| 🏞️ | **Layered landscapes** — fields, forests, rivers, hills, villages, stations, coastlines, tunnels, and more |
-| 🎧 | **Scene-aware sound** — field recordings blended with procedural rail rhythm |
-| 📷 | **Snapshot capture** — save the view you happen to catch |
-| ✨ | **Cinematic details** — parallax, sway, reflections, droplets, lightning, cabin glow, and rare events |
+| 🌄 | **Procedural routes** : reproducible journeys generated from a route seed |
+| 🌦️ | **Living atmosphere** : sun, cloud, rain, storms, fog, and snow |
+| 🕰️ | **Eight times of day** : from early dawn to midnight blue |
+| 🚃 | **Five coach moods** : sleeper, first-class, chair car, luggage-view, and modern premium |
+| 🏞️ | **Layered landscapes** : fields, forests, rivers, hills, villages, stations, coastlines, tunnels, and more |
+| 🎧 | **Scene-aware sound** : field recordings blended with procedural rail rhythm |
+| 📷 | **Snapshot capture** : save the view you happen to catch |
+| ✨ | **Cinematic details** : parallax, sway, reflections, droplets, lightning, cabin glow, and rare events |
 
 ## Make the journey yours
 
@@ -44,7 +46,7 @@ It is less about getting somewhere and more about that familiar, quiet feeling o
 - Change the **weather** and **time** without restarting.
 - Move at a **gentle**, **steady**, or **express** rhythm.
 - Toggle **sound**, enter **focus mode**, or save a **snapshot**.
-- Fine-tune scenery depth, window glass, and cabin glow—or let **Cinematic cut** choose the mood.
+- Fine-tune scenery depth, window glass, and cabin glow:or let **Cinematic cut** choose the mood.
 
 Your latest visual preferences are kept locally in the browser. Sound always begins off, in line with browser autoplay expectations.
 
@@ -69,28 +71,13 @@ src/
 └── main.ts      Application shell, state, and interactions
 ```
 
-## Run it locally
+## Open the live experience
 
-You will need a recent version of [Node.js](https://nodejs.org/) and npm.
+WindowSeat is live on Vercel and ready to explore in your browser.
 
-```bash
-git clone https://github.com/SatyajitBeura2468/windowseat.git
-cd windowseat
-npm install
-npm run dev
-```
+### [Open WindowSeat](https://windowseat-seven.vercel.app)
 
-Open **http://127.0.0.1:5173** in your browser.
-
-### Useful commands
-
-| Command | Purpose |
-|---|---|
-| `npm run dev` | Start the local Vite development server |
-| `npm run typecheck` | Check TypeScript without emitting files |
-| `npm run build` | Create a production build |
-| `npm run preview` | Preview the production build locally |
-
+No setup, no account, and no destination required. Pick an atmosphere, settle in, and watch the journey unfold.
 ## Audio and attribution
 
 The ambience combines procedural Web Audio layers with carefully selected public-domain and CC0 field recordings. Individual recordings, creators, licenses, and source pages are documented in [`public/audio/SOURCES.md`](public/audio/SOURCES.md).
